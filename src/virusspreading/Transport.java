@@ -7,13 +7,13 @@ import peersim.core.Protocol;
 import peersim.edsim.EDSimulator;
 
 // The transport layer
-public class HWTransport implements Protocol {
+public class Transport implements Protocol {
 
     // Variables used to get the latency between two nodes
     private long min;
     private long range;
 
-    public HWTransport(String prefix) {
+    public Transport(String prefix) {
         System.out.println("Transport Layer Enabled");
 
         // Get the values from the config file

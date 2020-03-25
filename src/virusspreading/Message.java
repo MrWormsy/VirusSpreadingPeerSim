@@ -16,6 +16,10 @@ public class Message {
         return this.content;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public int getType() {
         return this.type;
     }

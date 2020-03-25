@@ -1,6 +1,7 @@
 package virusspreading;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
 
@@ -18,20 +19,26 @@ import peersim.core.Node;
 */
 public class Initializer implements peersim.core.Control {
 
-    private int pid;
+    private int applicativePID;
+    private int maxNbOfNeighbors;
 
     public Initializer(String prefix) {
 
         // Get the pid of the applicative layer
-        this.pid = Configuration.getPid(prefix + ".protocolPid");
+        this.applicativePID = Configuration.getPid(prefix + ".protocolPid");
+        this.maxNbOfNeighbors = Configuration.getInt(prefix + ".nbNeighbors");
     }
 
     // Main method of the Initializer
     public boolean execute() {
         int sizeNetwork;
-        HelloWorld emitter, current;
+        Individual emitter, current;
         Node dest;
+        Node thisNode;
         Message helloMsg;
+
+        Node currentNode;
+        Individual currentIndividual;
 
         // Size of the network
         sizeNetwork = Network.size();
@@ -44,16 +51,11 @@ public class Initializer implements peersim.core.Control {
             System.exit(1);
         }
 
-        // Get the applicative layer of the emitter (node 0)
-        emitter = (HelloWorld) Network.get(0).getProtocol(this.pid);
-        emitter.setTransportLayer(0);
-
-        // For every nodes, we make a link between the applicative layer et and the transport layer then we send a message to the node 0
-        for (int i = 1; i < sizeNetwork; i++) {
+        // For every nodes we link the applicative layer to the transport layer
+        for (int i = 0; i < sizeNetwork; i++) {
             dest = Network.get(i);
-            current = (HelloWorld) dest.getProtocol(this.pid);
+            current = (Individual) dest.getProtocol(this.applicativePID);
             current.setTransportLayer(i);
-            emitter.send(helloMsg, dest);
         }
 
         System.out.println("Initialization completed");
