@@ -19,21 +19,25 @@ import peersim.core.Node;
 */
 public class Initializer implements peersim.core.Control {
 
-    private int applicativePID;
+    public static int applicativePID;
+
     public static int peopleMetPerDay;
     public static double chanceBeingInfected;
+    public static int sizeNetwork;
+    public static double chanceToGoOut;
 
     public Initializer(String prefix) {
 
         // Get the pid of the applicative layer
-        this.applicativePID = Configuration.getPid(prefix + ".protocolPid");
+        applicativePID = Configuration.getPid(prefix + ".protocolPid");
         peopleMetPerDay = Configuration.getInt(prefix + ".peopleMetPerDay");
         chanceBeingInfected = Configuration.getDouble(prefix + ".chanceBeingInfected");
+        chanceToGoOut = Configuration.getDouble(prefix + ".chanceToGoOut");
+
     }
 
     // Main method of the Initializer
     public boolean execute() {
-        int sizeNetwork;
         Individual emitter, current;
         Node dest;
         Node thisNode;
@@ -55,7 +59,7 @@ public class Initializer implements peersim.core.Control {
         // For every nodes we link the applicative layer to the transport layer
         for (int i = 0; i < sizeNetwork; i++) {
             dest = Network.get(i);
-            current = (Individual) dest.getProtocol(this.applicativePID);
+            current = (Individual) dest.getProtocol(applicativePID);
             current.setTransportLayer(i);
 
             // Set the first one as the infected

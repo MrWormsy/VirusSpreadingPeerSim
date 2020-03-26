@@ -30,7 +30,7 @@ public class Individual implements EDProtocol {
     // Know if the person is alive or not
     private boolean alive;
 
-    // Constructor
+    // ===== Constructor =====
     public Individual(String prefix) {
         this.prefix = prefix;
 
@@ -44,8 +44,14 @@ public class Individual implements EDProtocol {
         this.alive = true;
     }
 
-    public void setInfected() {
+    // ===== Individual methods =====
 
+    public void setInfected() {
+        this.infected = true;
+    }
+
+    public float getChanceOfBeingInfected() {
+        return 0.97f;
     }
 
     // ===== EDProtocol methods =====
@@ -133,10 +139,6 @@ public class Individual implements EDProtocol {
 
     public boolean isInfected() {
         return infected;
-    }
-
-    public void setInfected(boolean infected) {
-        this.infected = infected;
     }
 
     public boolean isAlive() {

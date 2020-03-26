@@ -4,3 +4,4 @@
 /RELEASE-NOTES
 /.idea/
 /doc/
+/src/*/*.class
