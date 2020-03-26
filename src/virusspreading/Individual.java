@@ -24,8 +24,11 @@ public class Individual implements EDProtocol {
     // Prefix of the layer (name of the variable of the layer given by the config file)
     private String prefix;
 
-    // List of neighbors
-    private ArrayList<Node> neighbors;
+    // Know if the person is infected or not
+    private boolean infected;
+
+    // Know if the person is alive or not
+    private boolean alive;
 
     // Constructor
     public Individual(String prefix) {
@@ -35,10 +38,19 @@ public class Individual implements EDProtocol {
         this.transportPid = Configuration.getPid(prefix + ".transport");
         this.mypid = Configuration.getPid(prefix + ".myself");
         this.transport = null;
-        this.neighbors = new ArrayList<>();
+
+        // Set infected as false by default and alive at true
+        this.infected = false;
+        this.alive = true;
     }
 
-    // Method called when a message is received by the layer VirusSpreading of the node
+    public void setInfected() {
+
+    }
+
+    // ===== EDProtocol methods =====
+
+    // Method called when a message is received by
     @Override
     public void processEvent(Node node, int pid, Object event) {
         this.receive((Message) event);
@@ -76,6 +88,8 @@ public class Individual implements EDProtocol {
     public String toString() {
         return "Node " + this.nodeId;
     }
+
+    // ===== Getters and Setters =====
 
     public int getTransportPid() {
         return transportPid;
@@ -117,11 +131,19 @@ public class Individual implements EDProtocol {
         this.prefix = prefix;
     }
 
-    public ArrayList<Node> getNeighbors() {
-        return neighbors;
+    public boolean isInfected() {
+        return infected;
     }
 
-    public void setNeighbors(ArrayList<Node> neighbors) {
-        this.neighbors = neighbors;
+    public void setInfected(boolean infected) {
+        this.infected = infected;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
     }
 }

@@ -2,13 +2,30 @@ package virusspreading;
 
 public class Message {
 
-    public final static int HELLOWORLD = 0;
+    enum MessageType {
+        INFECTION(1),
+        MESSAGE(2);
+
+        private int typeID;
+
+        MessageType(int i) {
+            this.setTypeID(i);
+        }
+
+        public int getTypeID() {
+            return this.typeID;
+        }
+
+        public void setTypeID(int typeID) {
+            this.typeID = typeID;
+        }
+    }
 
     private int type;
     private String content;
 
-    Message(int type, String content) {
-        this.type = type;
+    Message(MessageType type, String content) {
+        this.type = type.getTypeID();
         this.content = content;
     }
 

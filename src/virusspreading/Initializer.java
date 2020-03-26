@@ -20,13 +20,15 @@ import peersim.core.Node;
 public class Initializer implements peersim.core.Control {
 
     private int applicativePID;
-    private int maxNbOfNeighbors;
+    public static int peopleMetPerDay;
+    public static double chanceBeingInfected;
 
     public Initializer(String prefix) {
 
         // Get the pid of the applicative layer
         this.applicativePID = Configuration.getPid(prefix + ".protocolPid");
-        this.maxNbOfNeighbors = Configuration.getInt(prefix + ".nbNeighbors");
+        peopleMetPerDay = Configuration.getInt(prefix + ".peopleMetPerDay");
+        chanceBeingInfected = Configuration.getDouble(prefix + ".chanceBeingInfected");
     }
 
     // Main method of the Initializer
@@ -37,14 +39,13 @@ public class Initializer implements peersim.core.Control {
         Node thisNode;
         Message helloMsg;
 
-        Node currentNode;
         Individual currentIndividual;
 
         // Size of the network
         sizeNetwork = Network.size();
 
         // Creation of the message
-        helloMsg = new Message(Message.HELLOWORLD, "Hello!!");
+        helloMsg = new Message(Message.MessageType.MESSAGE, "Hello!!");
 
         if (sizeNetwork < 1) {
             System.err.println("Network size is not positive");
@@ -56,6 +57,11 @@ public class Initializer implements peersim.core.Control {
             dest = Network.get(i);
             current = (Individual) dest.getProtocol(this.applicativePID);
             current.setTransportLayer(i);
+
+            // Set the first one as the infected
+            if (i == 0) {
+                current.setInfected();
+            }
         }
 
         System.out.println("Initialization completed");
