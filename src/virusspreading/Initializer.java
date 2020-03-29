@@ -69,6 +69,9 @@ public class Initializer implements peersim.core.Control {
         }
 
         System.out.println("Initialization completed");
+
+        System.out.println("Day 0 : Patient 0 has arrived");
+
         return false;
     }
 }
