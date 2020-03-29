@@ -4,6 +4,8 @@ import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import peersim.core.CommonState;
 import peersim.core.Network;
 
+import java.util.ArrayList;
+
 public class Control implements peersim.core.Control {
 
     private int nbOfInfected;
@@ -19,6 +21,8 @@ public class Control implements peersim.core.Control {
         Individual current;
         Individual buddy;
         int randomID = 0;
+
+        ArrayList<Integer> peopleThatGoesOutside = new ArrayList<>();
 
         // Add one day
         this.day++;
