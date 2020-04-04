@@ -38,6 +38,11 @@ public class Transport implements Protocol {
         EDSimulator.add(delay, msg, dest, pid);
     }
 
+    // Send a message without a sender
+    public void send(Node dest, Object msg, int pid, long delay) {
+        EDSimulator.add(delay, msg, dest, pid);
+    }
+
     // Get a random latency between the min and the max
     public long getLatency(Node src, Node dest) {
         return (range == 1 ? min : min + CommonState.r.nextLong(range));

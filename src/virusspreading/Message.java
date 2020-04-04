@@ -4,7 +4,7 @@ public class Message {
 
     enum MessageType {
         INFECTION(1),
-        MESSAGE(2);
+        END_INCUBATION(2);
 
         private int typeID;
 
