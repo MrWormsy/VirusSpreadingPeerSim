@@ -60,6 +60,10 @@ public static final int EDSIM = 1;
 /** Unknown simulator */
 public static final int UNKNOWN = -1;
 
+// TODO I HAVE OVERRIDEN THIS BECAUSE I CANNOT FIND THE EXPERIMENT NUMBER
+public static int experimentNumber = 0;
+public static int experiments = 0;
+
 /** the class names of simulators used */
 protected static final String[] simName = {
 	"peersim.cdsim.CDSimulator",
@@ -158,6 +162,7 @@ public static void main(String[] args)
 	if(newout!=System.out) System.setOut(newout);
 	
 	int exps = Configuration.getInt(PAR_EXPS,1);
+	experiments = exps;
 
 	final int SIMID = getSimID();
 	if( SIMID == UNKNOWN )
@@ -171,6 +176,9 @@ public static void main(String[] args)
 
 		for(int k=0; k<exps; ++k)
 		{
+
+			experimentNumber = k;
+
 			if( k>0 )
 			{
 				long seed = CommonState.r.nextLong();

@@ -1,11 +1,13 @@
 package virusspreading;
 
 import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+import peersim.Simulator;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Control implements peersim.core.Control {
@@ -43,44 +45,48 @@ public class Control implements peersim.core.Control {
             this.day++;
         }
 
-        Individual current;
-        Message message;
 
-        // Loop through all the peers and make them send messages to each others
-        for (int i = 0; i < Initializer.sizeNetwork; i++) {
-
-            // We check if this person really want to go out today and if not we continue
-            if (CommonState.r.nextFloat() > Initializer.chanceToGoOut) {
-                continue;
-            }
-
-            current = (Individual) Network.get(i).getProtocol(Initializer.applicativePID);
-
-            // We check if the vaccine has been released
-            // If true we can give the vaccine to the person with  a given chance
-            if (CommonState.getTime() >= Initializer.timeVaccineFound && current.isInfected() && CommonState.r.nextFloat() <= Initializer.chanceGetVaccine && current.isAlive()) {
-
-                // Make him recover
-                current.recover();
-
-            }
-
-            // We see if this person is infected (not to send useless messages)
-            if (current.isInfected() && !current.isImmune() && current.isAlive()) {
-
-                message = new Message(Message.MessageType.INFECTION, String.valueOf(current.getMyNode().getID()));
-
-                // We loop through his neighbors and send them an infection message
-                for (Integer id : current.getNeighbors()) {
-                    current.send(message, Network.get(id));
-                }
-            }
+        // When a certain amount of the population has been infected the government force them stay at home
+        if (nbOfInfected >= Initializer.sizeNetwork * Initializer.proportionOfInfectedToDeclareContainment && Initializer.chanceToGoOut != Initializer.chanceToGoOutDuringContainment) {
+            Initializer.chanceToGoOut = Initializer.chanceToGoOutDuringContainment;
+            System.out.println("Containment has been declared by the government as " + Initializer.proportionOfInfectedToDeclareContainment * 100 + "% of the population is infected !");
         }
 
-        System.out.println("Day " + this.day + " at " + this.hour + "h we have " + nbOfInfected + " infected, " + nbImmune + " immunized and " + nbDead + " dead");
+
+        Individual current;
+        Message message = new Message(Message.MessageType.MAKE_ACTION, "");;
+
+        // Warn that next step is launched
+        for (int i = 0; i < Initializer.sizeNetwork; i++) {
+            current = (Individual) Network.get(i).getProtocol(Initializer.applicativePID);
+
+            // We send a message MAKE ACTION which is to tell the node that a new step has arrived thus an action is needed
+            current.getTransport().send(Network.get(i), message, current.getMypid(), 0);
+        }
+
+        // Here it is used for the data analysis part we output the stats
+        // System.out.println(CommonState.getTime() + "," + nbOfInfected + "," + nbImmune + "," + nbDead);
+
+        // Write to the file
+        try {
+            Initializer.statsFile.write(Simulator.experimentNumber + "," + CommonState.getTime() + "," + nbOfInfected + "," + nbImmune + "," + nbDead + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // If everybody is infected we can end the simulation
-        if (nbOfInfected == 0) {
+        if(nbOfInfected == 0) {
+
+            // If this was the last experiment we can close the file
+            if (Simulator.experiments == Simulator.experimentNumber + 1) {
+                try {
+                    Initializer.statsFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Return true to end
             return true;
         }
 

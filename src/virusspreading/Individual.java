@@ -120,7 +120,45 @@ public class Individual implements EDProtocol {
 
         }
 
+        // If the message is an action we tell the person to make an action (go out and/or infect persons)
+        else if (message.getType() == Message.MessageType.MAKE_ACTION.getTypeID()) {
+
+
+            this.makeAction();
+
+
+        }
+
         // this.receive((Message) event);
+    }
+
+    // Make an action (ie go out and infect people)
+    private void makeAction() {
+
+        // We check if this person really want to go out today and if not we abort
+        if (CommonState.r.nextFloat() > Initializer.chanceToGoOut) {
+            return;
+        }
+
+        // We check if the vaccine has been released
+        // If true we can give the vaccine to the person with  a given chance
+        if (CommonState.getTime() >= Initializer.timeVaccineFound && this.isInfected() && CommonState.r.nextFloat() <= Initializer.chanceGetVaccine && this.isAlive()) {
+
+            // Make him recover
+            this.recover();
+
+        }
+
+        // We see if this person is infected (not to send useless messages)
+        if (this.isInfected() && !this.isImmune() && this.isAlive()) {
+
+            Message message = new Message(Message.MessageType.INFECTION, String.valueOf(this.getMyNode().getID()));
+
+            // We loop through his neighbors and send them an infection message
+            for (Integer id : this.getNeighbors()) {
+                this.send(message, Network.get(id));
+            }
+        }
     }
 
     private void kill() {

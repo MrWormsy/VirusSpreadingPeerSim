@@ -1,10 +1,14 @@
 package virusspreading;
 
+import peersim.Simulator;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -28,11 +32,34 @@ public class Initializer implements peersim.core.Control {
     public static double chanceBeingInfected;
     public static int sizeNetwork;
     public static double chanceToGoOut;
+    public static double chanceToGoOutDuringContainment;
+    public static double proportionOfInfectedToDeclareContainment;
     public static int nbNeighbors;
     public static int timeVaccineFound;
     public static double chanceGetVaccine;
     public static double chanceToDie;
     public static long incubationPeriod;
+
+    public static FileWriter statsFile;
+
+    static {
+        try {
+            statsFile = new FileWriter("stats.csv");
+
+            // If it is the first round we write the head
+            if (Simulator.experimentNumber == 0) {
+                try {
+                    statsFile.write("epoch,time,nbOfInfected,nbImmune,nbDead\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static long timeStart;
 
     private LinkedList<Integer> ids;
 
@@ -43,11 +70,16 @@ public class Initializer implements peersim.core.Control {
         peopleMetPerDay = Configuration.getInt(prefix + ".peopleMetPerDay");
         chanceBeingInfected = Configuration.getDouble(prefix + ".chanceBeingInfected");
         chanceToGoOut = Configuration.getDouble(prefix + ".chanceToGoOut");
+        chanceToGoOutDuringContainment = Configuration.getDouble(prefix + ".chanceToGoOutDuringContainment");
+        proportionOfInfectedToDeclareContainment = Configuration.getDouble(prefix + ".proportionOfInfectedToDeclareContainment");
         chanceGetVaccine = Configuration.getDouble(prefix + ".chanceGetVaccine");
         chanceToDie = Configuration.getDouble(prefix + ".chanceToDie");
         nbNeighbors = Configuration.getInt(prefix + ".nbNeighbors");
         timeVaccineFound = Configuration.getInt(prefix + ".timeVaccineFound");
         incubationPeriod = Configuration.getLong(prefix + ".incubationPeriod");
+
+        // Print the time beginning (in s)
+        timeStart = System.currentTimeMillis() / 1000l;
 
         // Size of the network
         sizeNetwork = Network.size();
