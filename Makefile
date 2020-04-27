@@ -6,11 +6,11 @@ all:
 	javac -classpath src:jep-2.3.0.jar:djep-1.0.0.jar `find src -name "*.java"`
 
 run:
-	java -classpath src:jep-2.3.0.jar:djep-1.0.0.jar peersim/Simulator config_file.cfg
+	java -Xmx2048M -Xms2048M -classpath src:jep-2.3.0.jar:djep-1.0.0.jar peersim/Simulator config_file.cfg
 
 makenrun:
 	javac -classpath src:jep-2.3.0.jar:djep-1.0.0.jar `find src -name "*.java"`
-	java -classpath src:jep-2.3.0.jar:djep-1.0.0.jar peersim/Simulator config_file.cfg
+	java -Xmx2048M -Xms2048M -classpath src:jep-2.3.0.jar:djep-1.0.0.jar peersim/Simulator config_file.cfg
 
 clean:
 	rm -f `find -name "*.class"`

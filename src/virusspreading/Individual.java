@@ -1,11 +1,13 @@
 package virusspreading;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Individual implements EDProtocol {
 
@@ -30,6 +32,12 @@ public class Individual implements EDProtocol {
     // Know if the person is alive or not
     private boolean alive;
 
+    // Know if the person is immune to the virus
+    private boolean immune;
+
+    // Neighbors
+    private LinkedList<Integer> neighbors;
+
     // ===== Constructor =====
     public Individual(String prefix) {
         this.prefix = prefix;
@@ -39,15 +47,44 @@ public class Individual implements EDProtocol {
         this.mypid = Configuration.getPid(prefix + ".myself");
         this.transport = null;
 
+        // Init the list of Neighbors
+        this.neighbors = new LinkedList<>();
+
         // Set infected as false by default and alive at true
         this.infected = false;
         this.alive = true;
+        this.immune = false;
     }
 
     // ===== Individual methods =====
 
     public void setInfected() {
-        this.infected = true;
+
+        // If the person is not already infected
+        if (!this.infected && !this.immune && this.isAlive()) {
+            // He has a given chance not to catch the virus
+            if (CommonState.r.nextFloat() <= Initializer.chanceBeingInfected) {
+                this.infected = true;
+                Control.nbOfInfected++;
+
+                // Now we send a message to itself with the number of time we need to wait while the virus incubates
+                Message message = new Message(Message.MessageType.END_INCUBATION, "");
+                this.transport.send(getMyNode(), message, this.mypid, Initializer.incubationPeriod);
+            }
+        }
+
+    }
+
+    // We make the person recover and we set him immune to the virus
+    public void recover() {
+
+        if (this.infected && !this.immune) {
+            this.infected = false;
+            this.immune = true;
+            Control.nbImmune++;
+            Control.nbOfInfected--;
+        }
+
     }
 
     public float getChanceOfBeingInfected() {
@@ -59,7 +96,77 @@ public class Individual implements EDProtocol {
     // Method called when a message is received by
     @Override
     public void processEvent(Node node, int pid, Object event) {
-        this.receive((Message) event);
+
+        Message message = (Message) event;
+
+        // We see what kind of message we have received
+        if (message.getType() == Message.MessageType.INFECTION.getTypeID()) {
+
+            // Set infected only if not already infected
+            if (!this.isInfected()) {
+                this.setInfected();
+            }
+        }
+
+        // If the message is a incubation end message we check if the person die of get immune to the virus
+        else if (message.getType() == Message.MessageType.END_INCUBATION.getTypeID()) {
+
+            // If the person is unlucky we make it die
+            if (CommonState.r.nextFloat() <= Initializer.chanceToDie) {
+                kill();
+            } else {
+                recover();
+            }
+
+        }
+
+        // If the message is an action we tell the person to make an action (go out and/or infect persons)
+        else if (message.getType() == Message.MessageType.MAKE_ACTION.getTypeID()) {
+
+
+            this.makeAction();
+
+
+        }
+
+        // this.receive((Message) event);
+    }
+
+    // Make an action (ie go out and infect people)
+    private void makeAction() {
+
+        // We check if this person really want to go out today and if not we abort
+        if (CommonState.r.nextFloat() > Initializer.chanceToGoOut) {
+            return;
+        }
+
+        // We check if the vaccine has been released
+        // If true we can give the vaccine to the person with  a given chance
+        if (CommonState.getTime() >= Initializer.timeVaccineFound && this.isInfected() && CommonState.r.nextFloat() <= Initializer.chanceGetVaccine && this.isAlive()) {
+
+            // Make him recover
+            this.recover();
+
+        }
+
+        // We see if this person is infected (not to send useless messages)
+        if (this.isInfected() && !this.isImmune() && this.isAlive()) {
+
+            Message message = new Message(Message.MessageType.INFECTION, String.valueOf(this.getMyNode().getID()));
+
+            // We loop through his neighbors and send them an infection message
+            for (Integer id : this.getNeighbors()) {
+                this.send(message, Network.get(id));
+            }
+        }
+    }
+
+    private void kill() {
+        if (this.alive && this.infected) {
+            this.alive = false;
+            Control.nbDead++;
+            Control.nbOfInfected--;
+        }
     }
 
     // Method needed for the creation of the network (by cloning)
@@ -147,5 +254,21 @@ public class Individual implements EDProtocol {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public LinkedList<Integer> getNeighbors() {
+        return neighbors;
+    }
+
+    public void setNeighbors(LinkedList<Integer> neighbors) {
+        this.neighbors = neighbors;
+    }
+
+    public boolean isImmune() {
+        return immune;
+    }
+
+    public void setImmune(boolean immune) {
+        this.immune = immune;
     }
 }

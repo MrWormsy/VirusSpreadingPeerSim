@@ -1,9 +1,16 @@
 package virusspreading;
 
+import peersim.Simulator;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
 
 /*
   Module d'initialisation de helloWorld: 
@@ -25,6 +32,36 @@ public class Initializer implements peersim.core.Control {
     public static double chanceBeingInfected;
     public static int sizeNetwork;
     public static double chanceToGoOut;
+    public static double chanceToGoOutDuringContainment;
+    public static double proportionOfInfectedToDeclareContainment;
+    public static int nbNeighbors;
+    public static int timeVaccineFound;
+    public static double chanceGetVaccine;
+    public static double chanceToDie;
+    public static long incubationPeriod;
+
+    public static FileWriter statsFile;
+
+    static {
+        try {
+            statsFile = new FileWriter("stats.csv");
+
+            // If it is the first round we write the head
+            if (Simulator.experimentNumber == 0) {
+                try {
+                    statsFile.write("epoch,time,nbOfInfected,nbImmune,nbDead\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static long timeStart;
+
+    private LinkedList<Integer> ids;
 
     public Initializer(String prefix) {
 
@@ -33,7 +70,25 @@ public class Initializer implements peersim.core.Control {
         peopleMetPerDay = Configuration.getInt(prefix + ".peopleMetPerDay");
         chanceBeingInfected = Configuration.getDouble(prefix + ".chanceBeingInfected");
         chanceToGoOut = Configuration.getDouble(prefix + ".chanceToGoOut");
+        chanceToGoOutDuringContainment = Configuration.getDouble(prefix + ".chanceToGoOutDuringContainment");
+        proportionOfInfectedToDeclareContainment = Configuration.getDouble(prefix + ".proportionOfInfectedToDeclareContainment");
+        chanceGetVaccine = Configuration.getDouble(prefix + ".chanceGetVaccine");
+        chanceToDie = Configuration.getDouble(prefix + ".chanceToDie");
+        nbNeighbors = Configuration.getInt(prefix + ".nbNeighbors");
+        timeVaccineFound = Configuration.getInt(prefix + ".timeVaccineFound");
+        incubationPeriod = Configuration.getLong(prefix + ".incubationPeriod");
 
+        // Print the time beginning (in s)
+        timeStart = System.currentTimeMillis() / 1000l;
+
+        // Size of the network
+        sizeNetwork = Network.size();
+
+        // This one is used to generate the neighbors (which is an arraylist of id)
+        this.ids = new LinkedList<>();
+        for (int i = 0; i < sizeNetwork; i++) {
+            this.ids.add(i);
+        }
     }
 
     // Main method of the Initializer
@@ -44,12 +99,6 @@ public class Initializer implements peersim.core.Control {
         Message helloMsg;
 
         Individual currentIndividual;
-
-        // Size of the network
-        sizeNetwork = Network.size();
-
-        // Creation of the message
-        helloMsg = new Message(Message.MessageType.MESSAGE, "Hello!!");
 
         if (sizeNetwork < 1) {
             System.err.println("Network size is not positive");
@@ -66,9 +115,18 @@ public class Initializer implements peersim.core.Control {
             if (i == 0) {
                 current.setInfected();
             }
+
+            // We need to find a list of neighbors for every of them
+            Collections.shuffle(this.ids);
+            current.getNeighbors().addAll(this.ids.subList(0, nbNeighbors));
+
+            // And we remove himself (if he exists)
+            current.getNeighbors().remove((Integer) i);
         }
 
         System.out.println("Initialization completed");
+        System.out.println("Day 0 : Patient 0 has arrived");
+
         return false;
     }
 }
